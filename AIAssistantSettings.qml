@@ -31,6 +31,7 @@ Item {
     property string inceptionReasoningEffort: "medium"
     property bool inceptionReasoningSummary: true
     property bool inceptionReasoningSummaryWait: false
+    property bool geminiWebSearch: false
 
     function save(key, value) {
         PluginService.savePluginData(pluginId, key, value)
@@ -73,7 +74,8 @@ Item {
                 apiKeyEnvVar: "",
                 temperature: 0.7,
                 maxTokens: 4096,
-                timeout: 30
+                timeout: 30,
+                geminiWebSearch: false
             };
         case "ollama":
             return {
@@ -130,6 +132,8 @@ Item {
             profile.inceptionReasoningEffort = efforts.indexOf(eff) >= 0 ? eff : "medium"
             profile.inceptionReasoningSummary = (typeof p.inceptionReasoningSummary === "boolean") ? p.inceptionReasoningSummary : (d.inceptionReasoningSummary !== false)
             profile.inceptionReasoningSummaryWait = !!p.inceptionReasoningSummaryWait
+        } else if (id === "gemini") {
+            profile.geminiWebSearch = (typeof p.geminiWebSearch === "boolean") ? p.geminiWebSearch : !!d.geminiWebSearch
         }
         return profile
     }
@@ -175,6 +179,7 @@ Item {
             inceptionReasoningSummary = active.inceptionReasoningSummary !== false
             inceptionReasoningSummaryWait = !!active.inceptionReasoningSummaryWait
         }
+        geminiWebSearch = !!active.geminiWebSearch
     }
 
     function setProvider(providerId) {
@@ -189,6 +194,7 @@ Item {
         save("apiKeyEnvVar", active.apiKeyEnvVar)
         save("temperature", active.temperature)
         save("maxTokens", active.maxTokens)
+        save("geminiWebSearch", !!active.geminiWebSearch)
     }
 
     function saveActiveField(key, value) {
@@ -200,7 +206,7 @@ Item {
         saveProviders(nextProviders)
 
         // Keep active-provider legacy keys in sync for compatibility and easier debugging.
-        if (["baseUrl", "model", "apiKey", "saveApiKey", "apiKeyEnvVar", "temperature", "maxTokens"].includes(key)) {
+        if (["baseUrl", "model", "apiKey", "saveApiKey", "apiKeyEnvVar", "temperature", "maxTokens", "geminiWebSearch"].includes(key)) {
             save(key, nextProviders[provider][key])
         }
     }
@@ -221,7 +227,8 @@ Item {
                 apiKeyEnvVar: PluginService.loadPluginData(pluginId, "apiKeyEnvVar", ""),
                 temperature: PluginService.loadPluginData(pluginId, "temperature", 0.7),
                 maxTokens: PluginService.loadPluginData(pluginId, "maxTokens", 4096),
-                timeout: PluginService.loadPluginData(pluginId, "timeout", 30)
+                timeout: PluginService.loadPluginData(pluginId, "timeout", 30),
+                geminiWebSearch: PluginService.loadPluginData(pluginId, "geminiWebSearch", false)
             }
             nextProviders[provider] = normalizedProfile(provider, legacyProfile)
             saveProviders(nextProviders)
@@ -420,6 +427,45 @@ Item {
                                     width: parent.width
                                     visible: root.provider === "inception"
                                     text: I18n.tr("Mercury 2: temperature 0.5–1.0, max_tokens 1–50000 (see Inception API parameters).")
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.surfaceVariantText
+                                    wrapMode: Text.WordWrap
+                                }
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: Theme.spacingM
+                                    visible: root.provider === "gemini"
+
+                                    Column {
+                                        Layout.fillWidth: true
+                                        spacing: Theme.spacingXS
+
+                                        StyledText {
+                                            text: I18n.tr("Google Search grounding")
+                                            font.pixelSize: Theme.fontSizeMedium
+                                            color: Theme.surfaceText
+                                        }
+
+                                        StyledText {
+                                            text: I18n.tr("Allow Gemini to use Google Search for fresher web-grounded answers.")
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            color: Theme.surfaceVariantText
+                                            wrapMode: Text.WordWrap
+                                            width: parent.width
+                                        }
+                                    }
+
+                                    DankToggle {
+                                        checked: root.geminiWebSearch
+                                        onToggled: checked => saveActiveField("geminiWebSearch", checked)
+                                    }
+                                }
+
+                                StyledText {
+                                    width: parent.width
+                                    visible: root.provider === "gemini" && root.geminiWebSearch
+                                    text: I18n.tr("When enabled, Gemini may call Google Search and return grounding metadata. Search usage may affect billing.")
                                     font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.surfaceVariantText
                                     wrapMode: Text.WordWrap

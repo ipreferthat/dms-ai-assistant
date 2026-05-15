@@ -138,6 +138,8 @@ function geminiRequest(payload, apiKey) {
             maxOutputTokens: payload.max_tokens || 1024
         }
     };
+    if (payload.geminiWebSearch === true)
+        body.tools = [{ google_search: {} }];
     return { url, headers, body: JSON.stringify(body) };
 }
 

@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Inception** / Mercury 2: [API parameters](https://docs.inceptionlabs.ai/get-started/api-parameters) in settings (`reasoning_effort`, `reasoning_summary`, `reasoning_summary_wait`). Temperature clamped 0.5–1.0 per docs
 - **Ollama provider** with default local endpoint, installed-model discovery, and a model switcher in the main chat header
+- **Gemini Google Search grounding** toggle in settings for web-grounded responses
+
+### Fixed
+
+- Gemini streaming responses no longer finalize early when search-grounded streaming emits usage metadata before visible text
 
 ## [1.4.0] - 2026-03-01
 

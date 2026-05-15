@@ -98,6 +98,8 @@ Model: gemini-2.5-flash (production) or gemini-3-flash-preview (experimental)
 API Key: Your Google API key
 ```
 
+Gemini also supports an optional **Google Search grounding** toggle in settings. When enabled, the plugin sends the `google_search` tool in the request so Gemini can use web search for fresher answers.
+
 #### Inception Platform (OpenAI-compatible)
 
 ```
@@ -127,7 +129,7 @@ API Key: Optional (leave empty for local APIs)
    - More convenient but stored on disk
 
 2. **Environment Variable** (Recommended for security)
-   - Set API Key Env Var field (e.g., `OPENAI_API_KEY`)
+   - Set API Key Env Var field (e.g., `OPENAI_API_KEY`, `GEMINI_API_KEY_GCP`, etc.)
    - API key read from environment variable
    - Not stored in settings files
    - More secure

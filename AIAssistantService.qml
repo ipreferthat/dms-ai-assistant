@@ -50,6 +50,7 @@ Item {
     property string inceptionReasoningEffort: "medium"
     property bool inceptionReasoningSummary: true
     property bool inceptionReasoningSummaryWait: false
+    property bool geminiWebSearch: false
     property var availableModels: []
     property bool modelsLoading: false
     property string modelsError: ""
@@ -97,7 +98,8 @@ Item {
                 apiKeyEnvVar: "",
                 temperature: 0.7,
                 maxTokens: 4096,
-                timeout: 30
+                timeout: 30,
+                geminiWebSearch: false
             };
         case "ollama":
             return {
@@ -154,6 +156,8 @@ Item {
             profile.inceptionReasoningEffort = efforts.indexOf(eff) >= 0 ? eff : "medium";
             profile.inceptionReasoningSummary = (typeof p.inceptionReasoningSummary === "boolean") ? p.inceptionReasoningSummary : (defaults.inceptionReasoningSummary !== false);
             profile.inceptionReasoningSummaryWait = !!p.inceptionReasoningSummaryWait;
+        } else if (id === "gemini") {
+            profile.geminiWebSearch = (typeof p.geminiWebSearch === "boolean") ? p.geminiWebSearch : !!defaults.geminiWebSearch;
         }
         return profile;
     }
@@ -191,6 +195,7 @@ Item {
         PluginService.savePluginData(pluginId, "temperature", activeProfile.temperature)
         PluginService.savePluginData(pluginId, "maxTokens", activeProfile.maxTokens)
         PluginService.savePluginData(pluginId, "timeout", activeProfile.timeout)
+        PluginService.savePluginData(pluginId, "geminiWebSearch", !!activeProfile.geminiWebSearch)
     }
 
     function loadSettings() {
@@ -207,6 +212,7 @@ Item {
                 temperature: PluginService.loadPluginData(pluginId, "temperature", 0.7),
                 maxTokens: PluginService.loadPluginData(pluginId, "maxTokens", 4096),
                 timeout: PluginService.loadPluginData(pluginId, "timeout", 30),
+                geminiWebSearch: PluginService.loadPluginData(pluginId, "geminiWebSearch", false),
                 apiKey: String(PluginService.loadPluginData(pluginId, "apiKey", "")).trim(),
                 saveApiKey: PluginService.loadPluginData(pluginId, "saveApiKey", false),
                 apiKeyEnvVar: String(PluginService.loadPluginData(pluginId, "apiKeyEnvVar", "")).trim()
@@ -233,6 +239,7 @@ Item {
             inceptionReasoningSummary = active.inceptionReasoningSummary !== false;
             inceptionReasoningSummaryWait = !!active.inceptionReasoningSummaryWait;
         }
+        geminiWebSearch = !!active.geminiWebSearch
         useMonospace = PluginService.loadPluginData(pluginId, "useMonospace", false)
         suppressConfigChange = false
         refreshAvailableModels(false)
@@ -633,6 +640,8 @@ Item {
             payload.inceptionReasoningEffort = inceptionReasoningEffort;
             payload.inceptionReasoningSummary = inceptionReasoningSummary;
             payload.inceptionReasoningSummaryWait = inceptionReasoningSummaryWait;
+        } else if (provider === "gemini") {
+            payload.geminiWebSearch = geminiWebSearch;
         }
         return payload;
     }
@@ -712,9 +721,12 @@ Item {
                     const candidate = chunk.candidates?.[0];
                     const parts = candidate?.content?.parts || [];
                     let hasContent = false;
+                    let hasNonEmptyText = false;
                     parts.forEach(p => {
-                        if (p.text) {
+                        if (p.text !== undefined)
                             hasContent = true;
+                        if (p.text) {
+                            hasNonEmptyText = true;
                             updateStreamContent(activeStreamId, p.text);
                         }
                     });
@@ -723,8 +735,13 @@ Item {
                     if (finishReason && finishReason !== "FINISH_REASON_UNSPECIFIED") {
                         finalizeStream(activeStreamId);
                     }
-                    // Also finalize if this chunk has usageMetadata (indicates end of stream)
-                    if (chunk.usageMetadata && !hasContent) {
+                    // Some Gemini variants emit usageMetadata before visible text arrives.
+                    // Only use usageMetadata as an end-of-stream fallback once we've already
+                    // received visible output and this chunk contains no content parts.
+                    const existing = getMessageContentById(activeStreamId);
+                    if (chunk.usageMetadata && !hasContent && existing && existing.length > 0) {
+                        finalizeStream(activeStreamId);
+                    } else if (chunk.usageMetadata && hasContent && !hasNonEmptyText && existing && existing.length > 0) {
                         finalizeStream(activeStreamId);
                     }
                 });
