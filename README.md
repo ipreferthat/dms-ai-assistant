@@ -1,3 +1,5 @@
+### NOTE: PERSONAL FORK
+
 # AI Assistant Plugin for DankMaterialShell
 
 An integrated AI chat assistant plugin for DankMaterialShell with support for multiple AI providers, streaming responses, and markdown rendering.
