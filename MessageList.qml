@@ -51,16 +51,23 @@ Item {
         clip: true
         ScrollBar.vertical: ScrollBar { }
 
+        // Named function — stable reference, so Qt.callLater actually dedupes repeated calls
+        function scrollToEndDeferred() {
+            Qt.callLater(listView.positionViewAtEnd);
+        }
+
         onContentYChanged: {
-            // Use a small tolerance to avoid stickToBottom flipping to false
-            // while positionViewAtEnd() is mid-flight during a height update.
+            // Skip the recompute entirely while we're actively streaming and sticking —
+            // avoid contentY vs contentHeight racing against each other mid-update.
+            if (root.aiService && root.aiService.isStreaming && root.stickToBottom)
+                return;
             const maxY = Math.max(0, listView.contentHeight - listView.height);
             root.stickToBottom = listView.contentY >= maxY - 20;
         }
 
         onContentHeightChanged: {
             if (root.stickToBottom) {
-                Qt.callLater(() => listView.positionViewAtEnd());
+                listView.scrollToEndDeferred();
             }
         }
 
@@ -70,6 +77,27 @@ Item {
                 listView.positionViewAtEnd();
             });
         }
+
+
+        // onContentYChanged: {
+        //     // Use a small tolerance to avoid stickToBottom flipping to false
+        //     // while positionViewAtEnd() is mid-flight during a height update.
+        //     const maxY = Math.max(0, listView.contentHeight - listView.height);
+        //     root.stickToBottom = listView.contentY >= maxY - 20;
+        // }
+
+        // onContentHeightChanged: {
+        //     if (root.stickToBottom) {
+        //         Qt.callLater(() => listView.positionViewAtEnd());
+        //     }
+        // }
+
+        // onModelChanged: {
+        //     Qt.callLater(() => {
+        //         root.stickToBottom = true;
+        //         listView.positionViewAtEnd();
+        //     });
+        // }
 
         delegate: Item {
             id: wrapper

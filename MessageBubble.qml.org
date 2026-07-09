@@ -91,7 +91,7 @@ Item {
                     StyledText {
                         id: headerText
                         anchors.centerIn: parent
-                        text: root.isUser ? I18n.tr("You") : I18n.tr("Ana")
+                        text: root.isUser ? I18n.tr("You") : I18n.tr("Assistant")
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: Font.Medium
                         color: root.isUser ? Theme.primary : Theme.surfaceVariantText
@@ -215,13 +215,6 @@ Item {
                     text: I18n.tr("Streaming…")
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceVariantText
-                }
-
-                SequentialAnimation on opacity {
-                    running: root.status === "streaming"
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.4; duration: 600 }
-                    NumberAnimation { to: 1.0; duration: 600 }
                 }
             }
         }

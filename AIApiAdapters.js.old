@@ -72,7 +72,8 @@ function openaiRequest(payload, apiKey) {
         messages: payload.messages,
         max_tokens: payload.max_tokens || 1024,
         temperature: payload.temperature || 0.7,
-        stream: true
+        stream: true,
+
     };
     return { url, headers, body: JSON.stringify(body) };
 }
@@ -145,17 +146,7 @@ function geminiRequest(payload, apiKey) {
 
 function customRequest(payload, apiKey) {
     // v1 fallback: treat as OpenAI-compatible.
-    const request = openaiRequest(payload, apiKey);
-
-    if (payload.browserSearch === true) {
-        const body = JSON.parse(request.body);
-        // Groq built-in browser search tool (server-side; no local execution needed).
-        // Only supported on Groq's gpt-oss models: https://console.groq.com/docs/tool-use/built-in-tools/browser-search
-        body.tools = [{ type: "browser_search" }];
-        request.body = JSON.stringify(body);
-    }
-
-    return request;
+    return openaiRequest(payload, apiKey);
 }
 
 function ollamaRequest(payload) {

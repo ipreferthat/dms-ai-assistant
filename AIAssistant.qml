@@ -16,6 +16,9 @@ Item {
     Component.onCompleted: console.info("[AIAssistant UI Plugin] ready, service:", aiService)
     onAiServiceChanged: console.info("[AIAssistant UI Plugin] service changed:", aiService)
     onVisibleChanged: {
+        if (visible) {
+            composer.forceActiveFocus()
+        }
         if (!visible) {
             // Force menu teardown when the panel is hidden/toggled off.
             // This avoids stale popup/dropdown internals when reopened.
@@ -433,6 +436,14 @@ Item {
                         Layout.fillWidth: true
                         spacing: Theme.spacingS
 
+                        DankActionButton {
+                            iconName: "sticky_note_2"
+                            buttonSize: 28
+                            iconSize: 16
+                            tooltipText: I18n.tr("Edit notes")
+                            onClicked: notesDialog.open()
+                        }
+
                         Item { Layout.fillWidth: true }
 
                         DankActionButton {
@@ -460,6 +471,11 @@ Item {
                 }
             }
         }
+    }
+
+    NotesDialog {
+        id: notesDialog
+        aiService: root.aiService   // note: use root.aiService, not the bare AIAssistantService singleton reference — matches how the rest of this file accesses the service
     }
 
     Loader {

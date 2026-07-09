@@ -19,11 +19,9 @@ Item {
 
     readonly property string baseDir: Paths.strip(StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/DankMaterialShell/plugins/aiAssistant")
     readonly property string sessionPath: baseDir + "/session.json"
-    readonly property string notesPath: Paths.strip(StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.config/DankMaterialShell/plugins/aiAssistant/notes.txt")
     property bool sessionLoaded: false
     property string providerConfigHash: ""
     property var sessionsByConfig: ({})
-    property string notesList: ""
     property bool suppressConfigChange: false
     property int maxStoredMessages: 50
 
@@ -53,7 +51,6 @@ Item {
     property bool inceptionReasoningSummary: true
     property bool inceptionReasoningSummaryWait: false
     property bool geminiWebSearch: false
-    property bool customBrowserSearch: false
     property var availableModels: []
     property bool modelsLoading: false
     property string modelsError: ""
@@ -124,8 +121,7 @@ Item {
                 apiKeyEnvVar: "",
                 temperature: 0.7,
                 maxTokens: 4096,
-                timeout: 30,
-                customBrowserSearch: false
+                timeout: 30
             };
         default:
             return {
@@ -162,8 +158,6 @@ Item {
             profile.inceptionReasoningSummaryWait = !!p.inceptionReasoningSummaryWait;
         } else if (id === "gemini") {
             profile.geminiWebSearch = (typeof p.geminiWebSearch === "boolean") ? p.geminiWebSearch : !!defaults.geminiWebSearch;
-        } else if (id === "custom") {
-            profile.customBrowserSearch = (typeof p.customBrowserSearch === "boolean") ? p.customBrowserSearch : !!defaults.customBrowserSearch;
         }
         return profile;
     }
@@ -202,7 +196,6 @@ Item {
         PluginService.savePluginData(pluginId, "maxTokens", activeProfile.maxTokens)
         PluginService.savePluginData(pluginId, "timeout", activeProfile.timeout)
         PluginService.savePluginData(pluginId, "geminiWebSearch", !!activeProfile.geminiWebSearch)
-        PluginService.savePluginData(pluginId, "customBrowserSearch", !!activeProfile.customBrowserSearch)
     }
 
     function loadSettings() {
@@ -220,7 +213,6 @@ Item {
                 maxTokens: PluginService.loadPluginData(pluginId, "maxTokens", 4096),
                 timeout: PluginService.loadPluginData(pluginId, "timeout", 30),
                 geminiWebSearch: PluginService.loadPluginData(pluginId, "geminiWebSearch", false),
-                customBrowserSearch: PluginService.loadPluginData(pluginId, "customBrowserSearch", false),
                 apiKey: String(PluginService.loadPluginData(pluginId, "apiKey", "")).trim(),
                 saveApiKey: PluginService.loadPluginData(pluginId, "saveApiKey", false),
                 apiKeyEnvVar: String(PluginService.loadPluginData(pluginId, "apiKeyEnvVar", "")).trim()
@@ -248,7 +240,6 @@ Item {
             inceptionReasoningSummaryWait = !!active.inceptionReasoningSummaryWait;
         }
         geminiWebSearch = !!active.geminiWebSearch
-        customBrowserSearch = !!active.customBrowserSearch
         useMonospace = PluginService.loadPluginData(pluginId, "useMonospace", false)
         suppressConfigChange = false
         refreshAvailableModels(false)
@@ -306,37 +297,6 @@ Item {
             sessionLoaded = true;
             switchConfigHistory(computeConfigHash());
         }
-    }
-
-    FileView {
-        id: noteFile
-        path: Qt.resolvedUrl(notesPath)   // any .txt you want
-        blockWrites: false      // we’re only reading, so keep writes blocked // Not blocked rn
-        atomicWrites: true
-
-        // Fires when the file finishes loading (or when you call reload())
-        onLoaded: {
-            notesList = text()               // ← raw string from the file
-        }
-
-        onLoadFailed: {
-            console.warn("Could not read", path)
-        }
-    }
-
-    // This will save the New notes file
-    function updateNotes(newText) {
-        const cleaned = (newText || "").trim();
-        notesList = cleaned;
-        noteFile.setText(cleaned);
-    }
-
-    // This will append the new note
-    function appendNote(line) {
-        const trimmed = (line || "").trim();
-        if (!trimmed) return;
-        const updated = notesList ? notesList + "\n" + trimmed : trimmed;
-        updateNotes(updated);
     }
 
     function computeConfigHash() {
@@ -665,14 +625,7 @@ Item {
             }
         }
 
-        let sysprompt = "You are Ana, cute, helpful, feminine, slightly sarcastic chat persona. Keep your responses brief and concise, be mindful of the length of your responses. It's okay to not know things, just admit when you don't as that's more helpful. User can also be sarcastic so don't think they got offended by what u said. Use emojies to make the response more user friendly, but don't overdo it."
-        if (provider === "custom" && customBrowserSearch) {
-            sysprompt += " You have a browser_search tool available. It runs server-side, so you don't need any setup or permission to use it. Use it whenever a question needs current, real-time, or web-sourced information, and don't tell the user you're unable to search the web."
-        }
-        if (notesList) {
-            sysprompt += " Here are some notes about user:" + notesList + "\n If any start with Instruction: those are instructions for you to follow."
-        }
-        msgs.unshift({ role: "system", content: sysprompt});
+        msgs.unshift({ role: "user", content: "You are Ana, cute, helpful, slightly sarcastic chat persona. Keep your responses brief and concise, be mindful of the length of your responses. It's okay to not know things, just admit when you don't as that's more helpful. User can also be sarcastic so don't think they got offended by what u said."})
         msgs.push({ role: "user", content: latestText });
         const payload = {
             provider: provider,
@@ -690,8 +643,6 @@ Item {
             payload.inceptionReasoningSummaryWait = inceptionReasoningSummaryWait;
         } else if (provider === "gemini") {
             payload.geminiWebSearch = geminiWebSearch;
-        } else if (provider === "custom") {
-            payload.browserSearch = customBrowserSearch;
         }
         return payload;
     }

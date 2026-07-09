@@ -35,7 +35,7 @@ Item {
             delegate: DankSlideout {
                 id: slideout
                 required property var modelData
-                title: "AI Assistant"
+                title: "ANA: Arcane Nightshade Assistant"
                 slideoutWidth: 480
                 expandable: true
                 expandedWidthValue: 960

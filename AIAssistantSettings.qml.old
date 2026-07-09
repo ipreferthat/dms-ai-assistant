@@ -32,7 +32,6 @@ Item {
     property bool inceptionReasoningSummary: true
     property bool inceptionReasoningSummaryWait: false
     property bool geminiWebSearch: false
-    property bool customBrowserSearch: false
 
     function save(key, value) {
         PluginService.savePluginData(pluginId, key, value)
@@ -98,8 +97,7 @@ Item {
                 apiKeyEnvVar: "",
                 temperature: 0.7,
                 maxTokens: 4096,
-                timeout: 30,
-                customBrowserSearch: false
+                timeout: 30
             };
         default:
             return {
@@ -136,8 +134,6 @@ Item {
             profile.inceptionReasoningSummaryWait = !!p.inceptionReasoningSummaryWait
         } else if (id === "gemini") {
             profile.geminiWebSearch = (typeof p.geminiWebSearch === "boolean") ? p.geminiWebSearch : !!d.geminiWebSearch
-        } else if (id === "custom") {
-            profile.customBrowserSearch = (typeof p.customBrowserSearch === "boolean") ? p.customBrowserSearch : !!d.customBrowserSearch
         }
         return profile
     }
@@ -184,7 +180,6 @@ Item {
             inceptionReasoningSummaryWait = !!active.inceptionReasoningSummaryWait
         }
         geminiWebSearch = !!active.geminiWebSearch
-        customBrowserSearch = !!active.customBrowserSearch
     }
 
     function setProvider(providerId) {
@@ -200,7 +195,6 @@ Item {
         save("temperature", active.temperature)
         save("maxTokens", active.maxTokens)
         save("geminiWebSearch", !!active.geminiWebSearch)
-        save("customBrowserSearch", !!active.customBrowserSearch)
     }
 
     function saveActiveField(key, value) {
@@ -212,7 +206,7 @@ Item {
         saveProviders(nextProviders)
 
         // Keep active-provider legacy keys in sync for compatibility and easier debugging.
-        if (["baseUrl", "model", "apiKey", "saveApiKey", "apiKeyEnvVar", "temperature", "maxTokens", "geminiWebSearch", "customBrowserSearch"].includes(key)) {
+        if (["baseUrl", "model", "apiKey", "saveApiKey", "apiKeyEnvVar", "temperature", "maxTokens", "geminiWebSearch"].includes(key)) {
             save(key, nextProviders[provider][key])
         }
     }
@@ -234,8 +228,7 @@ Item {
                 temperature: PluginService.loadPluginData(pluginId, "temperature", 0.7),
                 maxTokens: PluginService.loadPluginData(pluginId, "maxTokens", 4096),
                 timeout: PluginService.loadPluginData(pluginId, "timeout", 30),
-                geminiWebSearch: PluginService.loadPluginData(pluginId, "geminiWebSearch", false),
-                customBrowserSearch: PluginService.loadPluginData(pluginId, "customBrowserSearch", false)
+                geminiWebSearch: PluginService.loadPluginData(pluginId, "geminiWebSearch", false)
             }
             nextProviders[provider] = normalizedProfile(provider, legacyProfile)
             saveProviders(nextProviders)
@@ -473,45 +466,6 @@ Item {
                                     width: parent.width
                                     visible: root.provider === "gemini" && root.geminiWebSearch
                                     text: I18n.tr("When enabled, Gemini may call Google Search and return grounding metadata. Search usage may affect billing.")
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    color: Theme.surfaceVariantText
-                                    wrapMode: Text.WordWrap
-                                }
-
-                                RowLayout {
-                                    width: parent.width
-                                    spacing: Theme.spacingM
-                                    visible: root.provider === "custom"
-
-                                    Column {
-                                        Layout.fillWidth: true
-                                        spacing: Theme.spacingXS
-
-                                        StyledText {
-                                            text: I18n.tr("Browser search")
-                                            font.pixelSize: Theme.fontSizeMedium
-                                            color: Theme.surfaceText
-                                        }
-
-                                        StyledText {
-                                            text: I18n.tr("Groq built-in tool (openai/gpt-oss models only). Runs server-side, no local setup needed.")
-                                            font.pixelSize: Theme.fontSizeSmall
-                                            color: Theme.surfaceVariantText
-                                            wrapMode: Text.WordWrap
-                                            width: parent.width
-                                        }
-                                    }
-
-                                    DankToggle {
-                                        checked: root.customBrowserSearch
-                                        onToggled: checked => saveActiveField("customBrowserSearch", checked)
-                                    }
-                                }
-
-                                StyledText {
-                                    width: parent.width
-                                    visible: root.provider === "custom" && root.customBrowserSearch
-                                    text: I18n.tr("Requires a Groq base URL and an openai/gpt-oss-20b or openai/gpt-oss-120b model. Not compatible with structured outputs.")
                                     font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.surfaceVariantText
                                     wrapMode: Text.WordWrap
