@@ -282,7 +282,7 @@ Item {
                 spacing: Theme.spacingL
 
                 StyledText {
-                    text: I18n.tr("AI Assistant Settings")
+                    text: I18n.tr("ANA Settings")
                     font.pixelSize: Theme.fontSizeLarge
                     color: Theme.surfaceText
                     font.weight: Font.Medium
