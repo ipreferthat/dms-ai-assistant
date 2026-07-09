@@ -1,1 +1,0 @@
-introducing python based functions and using pyside6 for it.
