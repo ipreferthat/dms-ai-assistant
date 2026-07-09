@@ -19,7 +19,8 @@ Item {
 
     readonly property string baseDir: Paths.strip(StandardPaths.writableLocation(StandardPaths.GenericStateLocation) + "/DankMaterialShell/plugins/aiAssistant")
     readonly property string sessionPath: baseDir + "/session.json"
-    readonly property string notesPath: Paths.strip(StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.config/DankMaterialShell/plugins/aiAssistant/notes.txt")
+    // readonly property string notesPath: Paths.strip(StandardPaths.writableLocation(StandardPaths.HomeLocation) + "/.config/DankMaterialShell/plugins/aiAssistant/notes.txt")
+    readonly property string notesPath: baseDir + "/notes.json"
     property bool sessionLoaded: false
     property string providerConfigHash: ""
     property var sessionsByConfig: ({})
