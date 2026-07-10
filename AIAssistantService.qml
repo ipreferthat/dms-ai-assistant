@@ -27,6 +27,7 @@ Item {
     property string notesList: ""
     property bool suppressConfigChange: false
     property int maxStoredMessages: 50
+    property string reasoningEffort: "low"  // session-only, not persisted: low/medium/high
 
     property ListModel messagesModel: ListModel {}
     property int messageCount: messagesModel.count
@@ -668,7 +669,7 @@ Item {
 
         let sysprompt = "You are Ana, cute, helpful, feminine, slightly sarcastic chat persona. Keep your responses brief and concise, be mindful of the length of your responses. It's okay to not know things, just admit when you don't as that's more helpful. User can also be sarcastic so don't think they got offended by what u said. Use emojies to make the response more user friendly, but don't overdo it."
         if (provider === "custom" && customBrowserSearch) {
-            sysprompt += " You have a browser_search tool available. It runs server-side, so you don't need any setup or permission to use it. Use it whenever a question needs current, real-time, or web-sourced information, and don't tell the user you're unable to search the web."
+            sysprompt += " You have a browser_search tool available. It runs server-side but, ask for permission before using. Use it whenever a question needs current, real-time, or web-sourced information, and don't tell the user you're unable to search the web."
         }
         if (notesList) {
             sysprompt += " Here are some notes about user:" + notesList + "\n If any start with Instruction: those are instructions for you to follow."
@@ -693,6 +694,7 @@ Item {
             payload.geminiWebSearch = geminiWebSearch;
         } else if (provider === "custom") {
             payload.browserSearch = customBrowserSearch;
+            payload.reasoningEffort = reasoningEffort;
         }
         return payload;
     }

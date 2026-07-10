@@ -42,6 +42,7 @@ Item {
 
                 content: AIAssistant {
                     aiService: aiLogic
+                    panelVisible: slideout.isVisible
                     onHideRequested: slideout.hide()
                 }
             }

@@ -80,6 +80,21 @@ Item {
 
                 // assistant: [icon][chip][spacer][regenerate][copy]
                 // user:      [spacer][chip][icon]
+                DankActionButton {
+                    visible: root.isUser //&& root.status === "ok"
+                    iconName: "content_copy"
+                    buttonSize: 24
+                    iconSize: 14
+                    backgroundColor: "transparent"
+                    iconColor: Theme.surfaceVariantText
+                    tooltipText: I18n.tr("Copy")
+                    enabled: (root.text || "").trim().length > 0
+                    onClicked: {
+                        Quickshell.execDetached(["wl-copy", root.text]);
+                        root.copySuccess();
+                    }
+                }
+
                 Item { Layout.fillWidth: root.isUser }
 
                 Rectangle {

@@ -146,12 +146,22 @@ function geminiRequest(payload, apiKey) {
 function customRequest(payload, apiKey) {
     // v1 fallback: treat as OpenAI-compatible.
     const request = openaiRequest(payload, apiKey);
+    const body = JSON.parse(request.body);
+    let touched = false;
 
     if (payload.browserSearch === true) {
-        const body = JSON.parse(request.body);
+        // const body = JSON.parse(request.body);
         // Groq built-in browser search tool (server-side; no local execution needed).
         // Only supported on Groq's gpt-oss models: https://console.groq.com/docs/tool-use/built-in-tools/browser-search
         body.tools = [{ type: "browser_search" }];
+        // request.body = JSON.stringify(body);
+        touched = true;
+    }
+    if (payload.reasoningEffort) {
+        body.reasoning_effort = payload.reasoningEffort;
+        touched = true;
+    }
+    if (touched) {
         request.body = JSON.stringify(body);
     }
 

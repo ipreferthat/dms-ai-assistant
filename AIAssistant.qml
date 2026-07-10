@@ -13,6 +13,8 @@ Item {
     implicitWidth: 480
     implicitHeight: 640
 
+    property bool panelVisible: true
+
     Component.onCompleted: console.info("[AIAssistant UI Plugin] ready, service:", aiService)
     onAiServiceChanged: console.info("[AIAssistant UI Plugin] service changed:", aiService)
     onVisibleChanged: {
@@ -421,10 +423,10 @@ Item {
                             anchors.fill: parent
                             anchors.leftMargin: Theme.spacingS
                             anchors.rightMargin: Theme.spacingS
-                            anchors.topMargin: Theme.spacingXS
+                            anchors.topMargin: Theme.spacingS
                             anchors.bottomMargin: Theme.spacingXS
-                            text: I18n.tr("Ask anything…")
-                            font.pixelSize: Theme.fontSizeMedium
+                            text: I18n.tr("  Ask anything… \n  Reasoning: L=low, M=medium, H=high \n  hint: to set a custom model go to settings.")
+                            font.pixelSize: Theme.fontSizeSmall
                             color: Theme.outlineButton
                             verticalAlignment: Text.AlignTop
                             visible: composer.text.length === 0
@@ -438,10 +440,68 @@ Item {
 
                         DankActionButton {
                             iconName: "sticky_note_2"
-                            buttonSize: 28
-                            iconSize: 16
+                            buttonSize: 26
+                            iconSize: 18
                             tooltipText: I18n.tr("Edit notes")
                             onClicked: notesDialog.open()
+                        }
+
+                        StyledText {
+                            text: "Reason?"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceTextMedium
+                            wrapMode: Text.Wrap
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Loader {
+                            active: root.panelVisible && aiService.provider === "custom"
+                            Layout.preferredWidth: 49
+                            Layout.preferredHeight: 26
+                            sourceComponent: DankDropdown {
+                                // options: ["low", "medium", "high"]
+                                // currentValue: aiService.reasoningEffort
+                                // onValueChanged: value => aiService.reasoningEffort = value
+                                options: ["L", "M", "H"]
+                                currentValue: aiService.reasoningEffort === "low" ? "L" : aiService.reasoningEffort === "medium" ? "M" : "H"
+                                onValueChanged: value => value === "L" ? aiService.reasoningEffort = "low" : value === "M" ? aiService.reasoningEffort = "medium" : aiService.reasoningEffort = "high"
+                            }
+                        }
+                        StyledText {
+                            text: "Model"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceTextMedium
+                            wrapMode: Text.Wrap
+                        }
+                        Loader {
+                            active: root.panelVisible && aiService.provider === "custom"
+                            Layout.preferredWidth: 86
+                            Layout.preferredHeight: 26
+
+                            sourceComponent: DankDropdown {
+                                // anchors.fill: parent
+                                // options: ["openai/gpt-oss-20b", "openai/gpt-oss-120b"]
+                                options: ["G20b", "G120b"]
+                                // currentValue: aiService.model
+                                currentValue: aiService.model === "openai/gpt-oss-20b" ? "G20b" : aiService.model === "openai/gpt-oss-120b" ? "G120b" : aiService.model
+                                // onValueChanged: value => aiService.setCurrentModel(value)
+                                onValueChanged: value => value === "G20b" ? aiService.setCurrentModel("openai/gpt-oss-20b") : value === "G120b" ? aiService.setCurrentModel("openai/gpt-oss-120b") : aiService.setCurrentModel(value)
+                            }
+                        }
+
+                        StyledText {
+                            text: "Web"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceTextMedium
+                            wrapMode: Text.Wrap
+                        }
+                        Loader {
+                            active: root.panelVisible && aiService.provider === "custom"
+                            // Layout.preferredHeight: 26
+                            sourceComponent: DankToggle {
+                                checked: aiService.customBrowserSearch
+                                // onToggled: checked => saveActiveField("customBrowserSearch", checked)
+                                // onToggled: checked => aiService.customBrowserSearch = true
+                            }
                         }
 
                         Item { Layout.fillWidth: true }

@@ -45,8 +45,8 @@ Popup {
         color: Theme.surfaceContainer
         radius: Theme.cornerRadius
         border.color: Theme.outlineMedium
-        border.width: 1
-        layer.enabled: false
+        border.width: 3
+        layer.enabled: true
     }
 
     ColumnLayout {
@@ -127,7 +127,7 @@ Popup {
                 background: Rectangle {
                     color: Theme.surfaceContainerHigh
                     radius: Theme.cornerRadius
-                    border.color: newNoteInput.activeFocus ? Theme.primary : Theme.outlineMedium
+                    border.color: newNoteInput.activeFocus ? Theme.outlineMedium : Theme.outlineMedium
                     border.width: 1
                 }
                 onAccepted: addButton.clicked()
