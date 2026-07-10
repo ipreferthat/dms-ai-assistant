@@ -6,6 +6,8 @@
         - Notes: you can add notes that AI can access. this works as a manual memory function. you can also give instructions as |Instruction: Don't be annoying|
         - Web Search: can be used by toggling from the settings after selecting "custom" provider. Only tested with Groq's gpt-oss models. burns tokens so use with caution.
         - Dropdown Menu to quickly change Model and Reasoning level from the chat.
+          <img width="453" height="172" alt="image" src="https://github.com/user-attachments/assets/2cced160-1f1f-4cd4-a425-080e74df71fd" />
+
 
 # AI Assistant Plugin for DankMaterialShell
 
