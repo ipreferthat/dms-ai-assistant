@@ -9,6 +9,27 @@
           <img width="453" height="172" alt="image" src="https://github.com/user-attachments/assets/2cced160-1f1f-4cd4-a425-080e74df71fd" />
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+README from original repo. Haven't changed anything so be mindful when following instructions.
+
+
 # AI Assistant Plugin for DankMaterialShell
 
 An integrated AI chat assistant plugin for DankMaterialShell with support for multiple AI providers, streaming responses, and markdown rendering.
