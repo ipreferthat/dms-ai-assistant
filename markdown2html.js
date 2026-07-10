@@ -16,6 +16,67 @@ var _md = (function() {
     return globalThis.marked;
 })();
 
+
+// ---------------------------------------------------------------------------
+// Lightweight LaTeX-ish -> Unicode converter (no real LaTeX engine available
+// in Qt RichText). Handles \bar{}, \frac{}{}, ^{}, _{} and bare x^2 / x_2.
+// ---------------------------------------------------------------------------
+var _supMap = {
+    "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",
+    "+":"⁺","-":"⁻","=":"⁼","(":"⁽",")":"⁾","n":"ⁿ","i":"ⁱ",
+    "a":"ᵃ","b":"ᵇ","c":"ᶜ","d":"ᵈ","e":"ᵉ","f":"ᶠ","g":"ᵍ","h":"ʰ","j":"ʲ",
+    "k":"ᵏ","l":"ˡ","m":"ᵐ","o":"ᵒ","p":"ᵖ","r":"ʳ","s":"ˢ","t":"ᵗ","u":"ᵘ",
+    "v":"ᵛ","w":"ʷ","x":"ˣ","y":"ʸ","z":"ᶻ"
+};
+var _subMap = {
+    "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉",
+    "+":"₊","-":"₋","=":"₌","(":"₍",")":"₎",
+    "a":"ₐ","e":"ₑ","h":"ₕ","i":"ᵢ","j":"ⱼ","k":"ₖ","l":"ₗ","m":"ₘ",
+    "n":"ₙ","o":"ₒ","p":"ₚ","r":"ᵣ","s":"ₛ","t":"ₜ","u":"ᵤ","v":"ᵥ","x":"ₓ"
+};
+
+function _mapChars(s, map) {
+    var out = "";
+    for (var i = 0; i < s.length; i++) {
+        out += map[s[i]] !== undefined ? map[s[i]] : s[i];
+    }
+    return out;
+}
+
+function convertMathNotation(text) {
+    if (!text) return text;
+
+    // // \sqrt[n]{x} -> ⁿ√x̅x̅ (nth root, optional index)
+    // text = text.replace(/\\sqrt\[([^\[\]]+)\]\{([^{}]+)\}/g, function(_, n, inner) {
+    //     return _mapChars(n, _supMap) + "\u221A" + inner.split("").map(function(ch) { return ch + "\u0305"; }).join("");
+    // });
+
+    // // \sqrt{x} -> √x̅ (plain square root)
+    // text = text.replace(/\\sqrt\{([^{}]+)\}/g, function(_, inner) {
+    //     return "\u221A" + inner.split("").map(function(ch) { return ch + "\u0305"; }).join("");
+    // });
+
+    // \bar{x} -> x + combining overline per character
+    text = text.replace(/\\bar\{([^{}]+)\}/g, function(_, inner) {
+        return inner.split("").map(function(ch) { return ch + "\u0305"; }).join("");
+    });
+
+    // \frac{a}{b} -> a⁄b
+    text = text.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, function(_, a, b) {
+        return a + "\u2044" + b;
+    });
+
+    // ^{...} and _{...} (braced, multi-char)
+    text = text.replace(/\^\{([^{}]+)\}/g, function(_, inner) { return _mapChars(inner, _supMap); });
+    text = text.replace(/_\{([^{}]+)\}/g, function(_, inner) { return _mapChars(inner, _subMap); });
+
+    // bare x^2 / x_2 (single char, no braces)
+    text = text.replace(/\^([A-Za-z0-9+\-=()])/g, function(_, ch) { return _mapChars(ch, _supMap); });
+    text = text.replace(/_([A-Za-z0-9+\-=()])/g, function(_, ch) { return _mapChars(ch, _subMap); });
+
+    return text;
+}
+
 // ---------------------------------------------------------------------------
 // Qt-specific markdown renderer using the marked v1 string-based renderer API
 // ---------------------------------------------------------------------------
@@ -23,6 +84,7 @@ var _md = (function() {
 
 function markdownToHtml(text, colors) {
     if (!text) return "";
+    text = convertMathNotation(text);
 
     var c = colors || {
         codeBg:           "#20FFFFFF",
