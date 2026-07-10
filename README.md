@@ -1,4 +1,11 @@
-### NOTE: PERSONAL FORK
+# **NOTE: PERSONAL FORK**
+   - There are some changes done that might break some functions from the original project.
+
+     ### Fork Features,
+        **NOTE**: *these are only tested for when using groq api as "custom".
+        - Notes: you can add notes that AI can access. this works as a manual memory function. you can also give instructions as |Instruction: Don't be annoying|
+        - Web Search: can be used by toggling from the settings after selecting "custom" provider. Only tested with Groq's gpt-oss models. burns tokens so use with caution.
+        - Dropdown Menu to quickly change Model and Reasoning level from the chat.
 
 # AI Assistant Plugin for DankMaterialShell
 
